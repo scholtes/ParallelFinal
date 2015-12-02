@@ -23,5 +23,9 @@ struct expensive_functor {
 // Run the tests here
 int main(void) {
 
+    expensive_functor f;
+
+    printf("Root of   f(x) = 1 - (x+0.1)^2   in [0, 1]: %0.5f\n", findRootSequential(0, 1, f));
+
     return 0;
 }
