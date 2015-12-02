@@ -5,16 +5,23 @@
  * functions, including benchmarks.
  */
 
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "rootfinding.h"
 
-int main(void) {
 
-    printf("add2toThis(3) = %d\n", add2toThis(3));
+// Mock some expensive function that is continuous and sign changing
+struct expensive_functor {
+    __host__ __device__
+    float operator()(float value) const {
+        return 1 - (value + 0.1f) * (value + 0.1f);
+    }
+};
+
+
+// Run the tests here
+int main(void) {
 
     return 0;
 }
