@@ -14,9 +14,15 @@
 
 // Mock some expensive function that is continuous and sign changing
 struct expensive_functor {
+    int wait_time;
+
+    //expensive_functor(int _wt) : wait_time(_wt) {}
+
+    //void set_wt(int _wt) { wait_time = _wt; }
+
     __host__ __device__
     float operator()(float value) const {
-        for(int i = 0; i < 10000; i++){}
+        for(int i = 0; i < wait_time; i++){}
         return 1 - (value + 0.1f) * (value + 0.1f);
     }
 };
@@ -26,21 +32,48 @@ struct expensive_functor {
 int main(void) {
 
     std::clock_t start;
-    unsigned int duration;
+    float duration;
     expensive_functor f;
     float result;
 
-    start = std::clock();
-    for(int i = 0; i < 1000; i++) result = findRootSequential(0, 1, f);
-    duration = (std::clock() - start);
-    printf("[SEQUENTIAL] Root of   f(x) = 1 - (x+0.1)^2   in [0, 1]: %0.5f\n", result);
-    printf("    Duration = %d cycles\n", duration);
+    const int phase_1_trials = 100000;
+    const int phase_2_3_trials = 1000;
+    const int max_cost = 10000;
+    const int cost_step = 250;
 
-    start = std::clock();
-    for(int i = 0; i < 1000; i++) result = findRootParallel1(0, 1, f);
-    duration = (std::clock() - start);
-    printf("[PARALLEL]   Root of   f(x) = 1 - (x+0.1)^2   in [0, 1]: %0.5f\n", result);
-    printf("    Duration = %d cycles\n", duration);
+    // Phase 1: empirically generate and measures functions with different costs
+    printf("function_time\n-------------\n");
+    for(int i = 0; i < max_cost; i += cost_step) {
+        f.wait_time = i;
+        start = std::clock();
+        for(int trial = 0; trial < phase_1_trials; trial++) f(1.0f);
+        duration = (std::clock() - start) / (float)phase_1_trials;
+        printf("%0.3f\n", duration);
+    }
+
+    // Phase 2: given a function that costs a certain amount, empirically
+    // measure how long it takes to find the root of that function using
+    // the sequential version
+    printf("\nsequential_time\n---------------\n");
+    for(int i = 0; i < max_cost; i += cost_step) {
+        f.wait_time = i;
+        start = std::clock();
+        for(int trial = 0; trial < phase_2_3_trials; trial++) findRootSequential(0, 1, f);
+        duration = (std::clock() - start) / float(phase_2_3_trials);
+        printf("%0.3f\n", duration);
+    }
+
+    // Phase 3: given a function that costs a certain amount, empirically
+    // measure how long it takes to find the root of that function using
+    // the parallel version (same as phase 2 except parallel, not sequential)
+    printf("\nparallel_time\n-------------\n");
+    for(int i = 0; i < max_cost; i += cost_step) {
+        f.wait_time = i;
+        start = std::clock();
+        for(int trial = 0; trial < phase_2_3_trials; trial++) findRootParallel1(0, 1, f);
+        duration = (std::clock() - start) / float(phase_2_3_trials);
+        printf("%0.3f\n", duration);
+    }
 
     return 0;
 }
