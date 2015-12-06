@@ -16,10 +16,6 @@
 struct expensive_functor {
     int wait_time;
 
-    //expensive_functor(int _wt) : wait_time(_wt) {}
-
-    //void set_wt(int _wt) { wait_time = _wt; }
-
     __host__ __device__
     float operator()(float value) const {
         for(int i = 0; i < wait_time; i++){}
