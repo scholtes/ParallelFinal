@@ -9,7 +9,9 @@
 #include <stdio.h>
 #include <ctime>
 
-#include "rootfinding.h"
+// Does not actually find roots
+// This version reports how many steps the algorithms take
+#include "rtfindanalyt.h"
 
 
 // Mock some expensive function that is continuous and sign changing
@@ -25,22 +27,15 @@ struct expensive_functor {
 // Run the tests here
 int main(void) {
 
-    std::clock_t start;
-    unsigned int duration;
     expensive_functor f;
-    float result;
+    unsigned int steps;
 
-    start = std::clock();
-    for(int i = 0; i < 1000; i++) result = findRootSequential(0, 1, f);
-    duration = (std::clock() - start);
-    printf("[SEQUENTIAL] Root of   f(x) = 1 - (x+0.1)^2   in [0, 1]: %0.5f\n", result);
-    printf("    Duration = %d cycles\n", duration);
+    steps = findRootSequential(0, 1, f);
+    printf("[SEQUENTIAL]: Number of steps to find root = %d\n", steps);
 
-    start = std::clock();
-    for(int i = 0; i < 1000; i++) result = findRootParallel1(0, 1, f);
-    duration = (std::clock() - start);
-    printf("[PARALLEL]   Root of   f(x) = 1 - (x+0.1)^2   in [0, 1]: %0.5f\n", result);
-    printf("    Duration = %d cycles\n", duration);
+    steps = findRootParallel1(0, 1, f);
+    printf("[PARALLEL]: Number of steps to find root   = %d\n", steps);
+
 
     return 0;
 }
